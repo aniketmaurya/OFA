@@ -1,16 +1,21 @@
 import os
 import sys
-sys.path.append("")
 import torch
 import numpy as np
-from fairseq import checkpoint_utils
-from fairseq import options, tasks, utils
-from fairseq.dataclass.utils import convert_namespace_to_omegaconf
-from tasks.mm_tasks.refcoco import RefcocoTask
+
 from PIL import Image
 from torchvision import transforms
 import cv2
 import gradio as gr
+
+if not os.path.exists("checkpoints/ofa_large_clean.pt"):
+    os.system('wget https://ofa-silicon.oss-us-west-1.aliyuncs.com/checkpoints/ofa_large_clean.pt; '
+            'mkdir -p checkpoints; mv ofa_large_clean.pt checkpoints/ofa_large_clean.pt')
+
+from fairseq import checkpoint_utils
+from fairseq import options, tasks, utils
+from fairseq.dataclass.utils import convert_namespace_to_omegaconf
+from tasks.mm_tasks.refcoco import RefcocoTask
 
 # Register
 tasks.register_task('refcoco', RefcocoTask)
