@@ -1,17 +1,16 @@
 import os
-import sys
-import torch
-import numpy as np
 
-from PIL import Image
-from torchvision import transforms
 import cv2
 import gradio as gr
+import numpy as np
+import torch
+from PIL import Image
+from torchvision import transforms
 
+os.chdir("research_app/components/OFA")
 if not os.path.exists("checkpoints/ofa_large_clean.pt"):
     os.system('wget https://ofa-silicon.oss-us-west-1.aliyuncs.com/checkpoints/ofa_large_clean.pt; '
-            'mkdir -p checkpoints; mv ofa_large_clean.pt checkpoints/ofa_large_clean.pt')
-
+              'mkdir -p checkpoints; mv ofa_large_clean.pt checkpoints/ofa_large_clean.pt')
 from fairseq import checkpoint_utils
 from fairseq import options, tasks, utils
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
@@ -21,7 +20,7 @@ from tasks.mm_tasks.refcoco import RefcocoTask
 tasks.register_task('refcoco', RefcocoTask)
 
 # turn on cuda if GPU is available
-use_cuda = False# torch.cuda.is_available()
+use_cuda = False  # torch.cuda.is_available()
 # use fp16 only when GPU is available
 use_fp16 = True if use_cuda else False
 
@@ -79,19 +78,19 @@ def decode_fn(x, tgt_dict, bpe, generator, tokenizer=None):
     bin_result = []
     img_result = []
     for token in x.strip().split():
-      if token.startswith('<bin_'):
-        bin_result.append(token)
-      elif token.startswith('<code_'):
-        img_result.append(token)
-      else:
-        if bpe is not None:
-          token = bpe.decode('{}'.format(token))
-        if tokenizer is not None:
-          token = tokenizer.decode(token)
-        if token.startswith(' ') or len(token_result) == 0:
-          token_result.append(token.strip())
+        if token.startswith('<bin_'):
+            bin_result.append(token)
+        elif token.startswith('<code_'):
+            img_result.append(token)
         else:
-          token_result[-1] += token
+            if bpe is not None:
+                token = bpe.decode('{}'.format(token))
+            if tokenizer is not None:
+                token = tokenizer.decode(token)
+            if token.startswith(' ') or len(token_result) == 0:
+                token_result.append(token.strip())
+            else:
+                token_result[-1] += token
 
     return ' '.join(token_result), ' '.join(bin_result), ' '.join(img_result)
 
@@ -197,6 +196,7 @@ def general_interface(image, instruction):
     else:
         return None, tokens
 
+
 if __name__ == '__main__':
     title = "OFA-Generic_Interface"
     description = "Gradio Demo for OFA-Generic_Interface. " \
@@ -208,6 +208,6 @@ if __name__ == '__main__':
     examples = [['test.jpeg', 'what color is the left car?'],
                 ['test.jpeg', 'which region does the text " a grey car " describe?']]
     io = gr.Interface(fn=general_interface, inputs=[gr.inputs.Image(type='pil'), "textbox"],
-                      outputs=[gr.outputs.Image(type='numpy'), 'text'],
-                      title=title, description=description, article=article, examples=examples, cache_examples=False)
+        outputs=[gr.outputs.Image(type='numpy'), 'text'],
+        title=title, description=description, article=article, examples=examples, cache_examples=False)
     io.launch(debug=True)
